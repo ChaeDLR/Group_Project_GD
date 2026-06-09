@@ -29,21 +29,8 @@ def test_sgd():
     return clf.predict(x_test)
 
 
-def train_sgd_iris():
-    """Train a SGD classifier on the iris dataset and return the accuracy score."""
-    iris = datasets.load_iris()
-    # features, 2d matrix of floats
-    # each row is a sample, each column is a feature
-    x = iris.data
-
-    # labels, 1d array of ints
-    # each element is the class label for the corresponding row in x
-    y = iris.target
-
-    # split the data into training and testing sets
-    x_train, x_test, y_train, y_test = train_test_split(
-        x, y, test_size=0.2, random_state=0
-    )
+def train_sgd(x_train, y_train):
+    """Train a SGD classifier on the dataset and return the accuracy score."""
 
     # max number of iterations is 10^6 / number of samples in the training set
     max_iter = np.int64(np.ceil(10**6 / x_train.shape[0]))
@@ -55,12 +42,45 @@ def train_sgd_iris():
 
     # fit the model on the training data
     clf.fit(x_train, y_train)
-    # predict the classes of the test data
-    y_pred = clf.predict(x_test)
-    # return the accuracy score of the predictions. 0.0 is the worst, 1.0 is the best
-    return metrics.accuracy_score(y_test, y_pred)
+    return clf
 
+
+def display_confusion_matrix(cm, class_names):
+    fig, ax = plot_confusion_matrix(conf_mat=cm, class_names=class_names, figsize=(6, 6))
+    plt.title=("Confusion Matrix for SGD Classifier on Wine Dataset")
+    plt.show()
 
 
 if __name__ == "__main__":
-    print(train_sgd_iris())
+
+    # can change the dataset here
+    dataset = datasets.load_wine()
+    #dataset = datasets.load_iris()
+
+    # features, 2d matrix of floats
+    # each row is a sample, each column is a feature
+    x = dataset.data
+
+    # labels, 1d array of ints
+    # each element is the class label for the corresponding row in x
+    y = dataset.target
+
+    # split the data into training and testing sets
+    x_train, x_test, y_train, y_test = train_test_split(
+        x, y, test_size=0.2, random_state=0
+    )
+
+    # train the SGD classifier on the training data
+    sgd = train_sgd(x_train, y_train)
+
+    # predict the classes of the test data
+    y_pred = sgd.predict(x_test)
+
+    # return the accuracy score of the predictions. 0.0 is the worst, 1.0 is the best
+    print(f"Accuracy: {metrics.accuracy_score(y_test, y_pred)}")
+
+    cm = metrics.confusion_matrix(y_test, y_pred)
+
+    class_names = dataset.target_names
+
+    display_confusion_matrix(cm, class_names)
