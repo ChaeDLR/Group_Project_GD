@@ -1,3 +1,5 @@
+import time
+
 import matplotlib.pyplot as plt
 
 from sklearn import datasets, metrics
@@ -7,6 +9,7 @@ from mlxtend.plotting import plot_confusion_matrix
 
 from sgd.classifier import train_sgd_classifier
 from sgd.regressor import train_sgd_regressor
+from batch_gd.train import train_batch_gd_regressor
 
 
 def display_confusion_matrix(cm, class_names):
@@ -37,8 +40,14 @@ if __name__ == "__main__":
     )
 
 #region SGD Regressor
+
+    # Track time for SGD
+    start = time.time()
+
     # train the SGD regressor on the training data
     sgd_reg = train_sgd_regressor(x_train, y_train)
+
+    sgd_time = time.time() - start
 
     # predict the values of the test data
     y_pred = sgd_reg.predict(x_test)
@@ -53,10 +62,45 @@ if __name__ == "__main__":
     rmse = metrics.root_mean_squared_error(y_test, y_pred)
 
     print("SGD Regressor Performance:")
+    print(f"SGD Training Time: {sgd_time:.6f} seconds")
     print(f"    Mean Absolute Error: {mae}")
     print(f"    Mean Squared Error: {mse}")
     print(f"    Root Mean Squared Error: {rmse}\n")
 #endregion
+
+    # region Batch GD Regressor
+
+    # Track time for GD
+    start = time.time()
+
+    # train the GD regressor on the training data
+    batch_reg, scaler = train_batch_gd_regressor(x_train, y_train)
+
+    batch_time = time.time() - start
+
+    # Apply the same scaling used during training to the test data
+    x_test_scaled = scaler.transform(x_test)
+
+    # Use the trained Batch GD model to make predictions on the scaled test data
+    y_pred_batch = batch_reg.predict(x_test_scaled)
+
+    # return the mean absolute error of the predictions. 0.0 is the best
+    mae = metrics.mean_absolute_error(y_test, y_pred_batch)
+
+    # return the mean absolute error of the predictions. 0.0 is the best
+    mse = metrics.mean_squared_error(y_test, y_pred_batch)
+
+    # return the root mean squared error of the predictions. 0.0 is the best
+    rmse = metrics.root_mean_squared_error(y_test, y_pred_batch)
+
+    print("Batch GD Regressor Performance:")
+    print(f"    Training Time: {batch_time:.6f} seconds")
+    print(f"    Mean Absolute Error: {mae}")
+    print(f"    Mean Squared Error: {mse}")
+    print(f"    Root Mean Squared Error: {rmse}\n")
+    print(f"Batch GD Iterations: {batch_reg.iterations}")
+
+    # endregion
 
 #region SGD Classifier
     # train the SGD classifier on the training data
