@@ -2,7 +2,7 @@ import numpy as np
 
 
 class BatchGDRegressor:
-    def __init__(self, learning_rate=0.01, epochs=1000):
+    def __init__(self, learning_rate, epochs):
         self.learning_rate = learning_rate
         self.epochs = epochs
         self.iterations = None
@@ -15,7 +15,7 @@ class BatchGDRegressor:
         n_samples, n_features = X.shape
 
         self.weights = np.zeros(n_features)
-        self.bias = 0
+        self.bias = 0.0
 
 
         prev_loss = float("inf")
