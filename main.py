@@ -2,7 +2,7 @@ import time
 
 import matplotlib.pyplot as plt
 
-import numpy as np
+import os
 
 from math import trunc
 
@@ -144,6 +144,9 @@ def plot_metrics(dataset_name, batch_metrics, sgd_metrics, save=False):
         plt.show()
 
 if __name__ == "__main__":
+    if not os.path.exists("figures/"):
+        os.mkdir("figures/")
+
     datasets_dict = {
         #"Wine": datasets.load_wine,    # classification dataset
         #"Iris": datasets.load_iris,    # classification dataset
