@@ -2,6 +2,10 @@ import time
 
 import matplotlib.pyplot as plt
 
+import numpy as np
+
+from math import trunc
+
 from sklearn import datasets, metrics
 from sklearn.model_selection import train_test_split
 
@@ -11,6 +15,7 @@ from sgd.classifier import train_sgd_classifier
 from sgd.regressor import train_sgd_regressor
 from batch_gd.train import train_batch_gd_regressor, train_batch_gd_classifier
 
+from plot import hat_graph
 
 def display_confusion_matrix(cm, class_names):
     fig, ax = plot_confusion_matrix(
@@ -106,6 +111,9 @@ def get_regressor_metrics(y_test, y_pred):
     rmse = metrics.root_mean_squared_error(y_test, y_pred)
     return mae, mse, rmse
 
+def truncate_metrics(metrics, decimals=2):
+    factor = 10 ** decimals
+    return [trunc(metric * factor) / factor for metric in metrics]
 
 def print_metrics(name, time, mae, mse, rmse):
     print(f"{name} Performance:")
@@ -114,34 +122,63 @@ def print_metrics(name, time, mae, mse, rmse):
     print(f"    Mean Squared Error: {mse}")
     print(f"    Root Mean Squared Error: {rmse}\n")
 
+def plot_metrics(dataset_name, batch_metrics, sgd_metrics, save=False):
+    fig, ax = plt.subplots(layout="constrained")
+
+    x_labels = ["MAE", "MSE", "RMSE"]
+
+    batch_metrics = truncate_metrics(batch_metrics)
+    sgd_metrics = truncate_metrics(sgd_metrics)
+
+    hat_graph(ax, x_labels, [batch_metrics, sgd_metrics], ["Batch GD", "SGD"])
+
+    ax.set_xlabel("Metrics")
+    ax.set_ylabel("Error")
+    ax.set_ylim(0, max(max(batch_metrics), max(sgd_metrics)) * 1.1)
+    ax.set_title(f"Regressor Performance Comparison - {dataset_name}")
+    ax.legend()
+
+    if save:
+        plt.savefig(f"./figures/{dataset_name}_regressor_comparison.png")
+    else:
+        plt.show()
 
 if __name__ == "__main__":
+    datasets_dict = {
+        #"Wine": datasets.load_wine,    # classification dataset
+        #"Iris": datasets.load_iris,    # classification dataset
+        #"Linnerud": datasets.load_linnerud, # regression dataset
+        "Diabetes": datasets.load_diabetes, # regression dataset
+        }
+    
+    for name, loader in datasets_dict.items():
 
-    # can change the dataset here
-    dataset = datasets.load_wine()
-    # dataset = datasets.load_iris()
+        dataset = loader()
 
-    # features, 2d matrix of floats
-    # each row is a sample, each column is a feature
-    x = dataset.data
+        # features, 2d matrix of floats
+        # each row is a sample, each column is a feature
+        x = dataset.data
 
-    # labels, 1d array of ints
-    # each element is the class label for the corresponding row in x
-    y = dataset.target
+        # labels, 1d array of ints
+        # each element is the class label for the corresponding row in x
+        y = dataset.target
 
-    # split the data into training and testing sets
-    x_train, x_test, y_train, y_test = train_test_split(
-        x, y, test_size=0.2, random_state=0
-    )
+        # split the data into training and testing sets
+        x_train, x_test, y_train, y_test = train_test_split(
+            x, y, test_size=0.2, random_state=0
+        )
 
-    # train models
-    y_pred_batch, batch_time = run_batch_gd_regressor(x_train, y_train, x_test)
-    y_pred_sgd, sgd_time = run_sklearn_sgd_regressor(x_train, y_train, x_test)
+        # train models
+        y_pred_batch, batch_time = run_batch_gd_regressor(x_train, y_train, x_test)
+        y_pred_sgd, sgd_time = run_sklearn_sgd_regressor(x_train, y_train, x_test)
 
-    # get metrics, (mae, mse, rmse)
-    batch_metrics = get_regressor_metrics(y_test, y_pred_batch)
-    sgd_metrics = get_regressor_metrics(y_test, y_pred_sgd)
+        # get metrics, (mae, mse, rmse)
+        batch_metrics = get_regressor_metrics(y_test, y_pred_batch)
+        sgd_metrics = get_regressor_metrics(y_test, y_pred_sgd)
 
-    # print metrics
-    print_metrics("Batch GD Regressor", batch_time, *batch_metrics)
-    print_metrics("SGD Regressor", sgd_time, *sgd_metrics)
+        # print metrics
+        print_metrics("Batch GD Regressor", batch_time, *batch_metrics)
+        print_metrics("SGD Regressor", sgd_time, *sgd_metrics)
+
+        # plot metrics
+        plot_metrics(f"{name}_dataset", batch_metrics, sgd_metrics, save=True)
