@@ -20,6 +20,101 @@ def display_confusion_matrix(cm, class_names):
     plt.show()
 
 
+def run_batch_gd_regressor(x_train, y_train, x_test):
+    # Track time for GD
+    start = time.time()
+
+    # train the GD regressor on the training data
+    batch_reg, scaler = train_batch_gd_regressor(x_train, y_train)
+
+    batch_time = time.time() - start
+
+    # Apply the same scaling used during training to the test data
+    x_test_scaled = scaler.transform(x_test)
+
+    # Use the trained Batch GD model to make predictions on the scaled test data
+    y_pred_batch = batch_reg.predict(x_test_scaled)
+
+    return y_pred_batch, batch_time
+
+
+def run_batch_gd_classifier(x_train, y_train, x_test, y_test):
+    start = time.time()
+
+    batch_clf, scaler = train_batch_gd_classifier(x_train, y_train)
+
+    batch_time = time.time() - start
+
+    # Apply the same scaling used during training to the test data
+    x_test_scaled = scaler.transform(x_test)
+
+    y_pred_batch = batch_clf.predict(x_test_scaled)
+    print(f"y_test={y_test}\n y_pred_batch={y_pred_batch}")
+
+    # return the accuracy score of the predictions. 0.0 is the worst, 1.0 is the best
+    print(
+        f"Batch GD Classifier Accuracy: {metrics.accuracy_score(y_test, y_pred_batch)}"
+    )
+
+    # compute and display the confusion matrix for the test data
+    cm = metrics.confusion_matrix(y_test, y_pred_batch)
+
+    display_confusion_matrix(cm, dataset.target_names)
+
+
+def run_sklearn_sgd_regressor(x_train, y_train, x_test):
+    # Track time for SGD
+    start = time.time()
+
+    # train the SGD regressor on the training data
+    sgd_reg = train_sgd_regressor(x_train, y_train)
+
+    sgd_time = time.time() - start
+
+    # predict the values of the test data
+    y_pred = sgd_reg.predict(x_test)
+
+    return y_pred, sgd_time
+
+
+def run_sklearn_sgd_classifier(x_train, y_train, x_test, y_test):
+    # train the SGD classifier on the training data
+    sgd = train_sgd_classifier(x_train, y_train)
+
+    # predict the classes of the test data
+    y_pred = sgd.predict(x_test)
+
+    # return the accuracy score of the predictions. 0.0 is the worst, 1.0 is the best
+    print(f"SGD Classifier Accuracy: {metrics.accuracy_score(y_test, y_pred)}")
+
+    # compute and display the confusion matrix for the test data
+    cm = metrics.confusion_matrix(y_test, y_pred)
+
+    class_names = dataset.target_names
+
+    display_confusion_matrix(cm, class_names)
+
+
+def get_regressor_metrics(y_test, y_pred):
+    # return the mean absolute error of the predictions. 0.0 is the best
+    mae = metrics.mean_absolute_error(y_test, y_pred)
+
+    # return the mean absolute error of the predictions. 0.0 is the best
+    mse = metrics.mean_squared_error(y_test, y_pred)
+
+    # return the root mean squared error of the predictions. 0.0 is the best
+    rmse = metrics.root_mean_squared_error(y_test, y_pred)
+    return mae, mse, rmse
+
+
+def print_metrics(name, time, mae, mse, rmse):
+    print(f"{name} Performance:")
+    print(f"    Training Time: {time:.6f} seconds")
+    print(f"    Mean Absolute Error: {mae}")
+    print(f"    Mean Squared Error: {mse}")
+    print(f"    Root Mean Squared Error: {rmse}\n")
+
+
 if __name__ == "__main__":
 
     # can change the dataset here
@@ -39,102 +134,14 @@ if __name__ == "__main__":
         x, y, test_size=0.2, random_state=0
     )
 
-#region Batch GD Regressor
+    # train models
+    y_pred_batch, batch_time = run_batch_gd_regressor(x_train, y_train, x_test)
+    y_pred_sgd, sgd_time = run_sklearn_sgd_regressor(x_train, y_train, x_test)
 
-    # Track time for GD
-    start = time.time()
+    # get metrics, (mae, mse, rmse)
+    batch_metrics = get_regressor_metrics(y_test, y_pred_batch)
+    sgd_metrics = get_regressor_metrics(y_test, y_pred_sgd)
 
-    # train the GD regressor on the training data
-    batch_reg, scaler = train_batch_gd_regressor(x_train, y_train)
-
-    batch_time = time.time() - start
-
-    # Apply the same scaling used during training to the test data
-    x_test_scaled = scaler.transform(x_test)
-
-    # Use the trained Batch GD model to make predictions on the scaled test data
-    y_pred_batch = batch_reg.predict(x_test_scaled)
-
-    # return the mean absolute error of the predictions. 0.0 is the best
-    mae = metrics.mean_absolute_error(y_test, y_pred_batch)
-
-    # return the mean absolute error of the predictions. 0.0 is the best
-    mse = metrics.mean_squared_error(y_test, y_pred_batch)
-
-    # return the root mean squared error of the predictions. 0.0 is the best
-    rmse = metrics.root_mean_squared_error(y_test, y_pred_batch)
-
-    print("Batch GD Regressor Performance:")
-    print(f"    Training Time: {batch_time:.6f} seconds")
-    print(f"    Mean Absolute Error: {mae}")
-    print(f"    Mean Squared Error: {mse}")
-    print(f"    Root Mean Squared Error: {rmse}\n")
-    print(f"Batch GD Iterations: {batch_reg.iterations}")
-
-#endregion
-
-#region Batch GD Classifier
-
-    start = time.time()
-
-    batch_clf, _ = train_batch_gd_classifier(x_train, y_train)
-
-    y_pred_batch = batch_clf.predict(x_test_scaled)
-    print(f"y_test={y_test}\n y_pred_batch={y_pred_batch}")
-
-    # return the accuracy score of the predictions. 0.0 is the worst, 1.0 is the best
-    print(f"Batch GD Classifier Accuracy: {metrics.accuracy_score(y_test, y_pred_batch)}")
-
-    # compute and display the confusion matrix for the test data
-    cm = metrics.confusion_matrix(y_test, y_pred_batch)
-
-    display_confusion_matrix(cm, dataset.target_names)
-
-#endregion
-
-#region sklearn SGD Regressor
-
-    # Track time for SGD
-    start = time.time()
-
-    # train the SGD regressor on the training data
-    sgd_reg = train_sgd_regressor(x_train, y_train)
-
-    sgd_time = time.time() - start
-
-    # predict the values of the test data
-    y_pred = sgd_reg.predict(x_test)
-
-    # return the mean absolute error of the predictions. 0.0 is the best
-    mae = metrics.mean_absolute_error(y_test, y_pred)
-
-    # return the mean squared error of the predictions. 0.0 is the best
-    mse = metrics.mean_squared_error(y_test, y_pred)
-
-    # return the root mean squared error of the predictions. 0.0 is the best
-    rmse = metrics.root_mean_squared_error(y_test, y_pred)
-
-    print("SGD Regressor Performance:")
-    print(f"SGD Training Time: {sgd_time:.6f} seconds")
-    print(f"    Mean Absolute Error: {mae}")
-    print(f"    Mean Squared Error: {mse}")
-    print(f"    Root Mean Squared Error: {rmse}\n")
-#endregion
-
-#region sklearn SGD Classifier
-    # train the SGD classifier on the training data
-    sgd = train_sgd_classifier(x_train, y_train)
-
-    # predict the classes of the test data
-    y_pred = sgd.predict(x_test)
-
-    # return the accuracy score of the predictions. 0.0 is the worst, 1.0 is the best
-    print(f"SGD Classifier Accuracy: {metrics.accuracy_score(y_test, y_pred)}")
-
-    # compute and display the confusion matrix for the test data
-    cm = metrics.confusion_matrix(y_test, y_pred)
-
-    class_names = dataset.target_names
-
-    display_confusion_matrix(cm, class_names)
-#endregion
+    # print metrics
+    print_metrics("Batch GD Regressor", batch_time, *batch_metrics)
+    print_metrics("SGD Regressor", sgd_time, *sgd_metrics)

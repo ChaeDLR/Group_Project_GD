@@ -34,15 +34,15 @@ class BatchGDClassifier:
             # update parameters
             self.weights -= self.learning_rate * dw
             self.bias -= self.learning_rate * db
-        
+
     def predict_probability(self, X: np.ndarray):
         z = X @ self.weights + self.bias
         return sigmoid(z)
-    
+
     def predict(self, X: np.ndarray):
         probabilities = self.predict_probability(X)
-        return (probabilities >= 0.5).astype(int)  
-    
+        return (probabilities >= 0.5).astype(int)
+
     def score(self, X, y):
         y_preds = self.predict(X)
         return np.mean(y_preds == y)

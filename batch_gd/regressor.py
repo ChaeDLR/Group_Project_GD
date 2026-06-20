@@ -10,13 +10,11 @@ class BatchGDRegressor:
         self.weights = None
         self.bias = None
 
-
     def fit(self, X, y):
         n_samples, n_features = X.shape
 
         self.weights = np.zeros(n_features)
         self.bias = 0.0
-
 
         prev_loss = float("inf")
 
@@ -42,10 +40,8 @@ class BatchGDRegressor:
                 relative_change = abs(prev_loss - loss) / (abs(prev_loss) + 1e-8)
 
                 if relative_change < 1e-4:
-                    print(f"Converged at iteration {i}")
                     self.iterations = i + 1
                     break
-
 
             prev_loss = loss
 
