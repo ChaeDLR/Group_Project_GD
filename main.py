@@ -109,7 +109,7 @@ def get_regressor_metrics(y_test, y_pred):
 
     # return the root mean squared error of the predictions. 0.0 is the best
     rmse = metrics.root_mean_squared_error(y_test, y_pred)
-    return mae, mse, rmse
+    return {"mae": mae, "mse": mse, "rmse": rmse}
 
 def truncate_metrics(metrics, decimals=2):
     factor = 10 ** decimals
@@ -142,6 +142,12 @@ def plot_metrics(dataset_name, batch_metrics, sgd_metrics, save=False):
         plt.savefig(f"./figures/{dataset_name}_regressor_comparison.png")
     else:
         plt.show()
+
+def stringify_dict(d: dict):
+    dstr = ""
+    for k, v in d.items():
+        dstr += f"{k}={v}\n"
+    return dstr
 
 if __name__ == "__main__":
     if not os.path.exists("figures/"):
@@ -181,13 +187,22 @@ if __name__ == "__main__":
         sgd_metrics = get_regressor_metrics(y_test, y_pred_sgd)
 
         # print metrics
-        print_metrics("Batch GD Regressor", batch_time, *batch_metrics)
-        print_metrics("SGD Regressor", sgd_time, *sgd_metrics)
+        print_metrics("Batch GD Regressor", batch_time, **batch_metrics)
+        print_metrics("SGD Regressor", sgd_time, **sgd_metrics)
 
         # plot metrics
         #plot_metrics(f"{name}_dataset", batch_metrics, sgd_metrics, save=True)
-        print(f"y_test={y_test.shape}")
-        print(f"y_pred_batch={y_pred_batch.shape}")
-        fig, ax = plt.subplots(layout="constrained")
-        regression_graph(ax, y_test, y_pred_batch)
+
+        fig, ax = plt.subplots(1, 2, layout="constrained")
+        regression_graph(
+            ax[0], y_test, y_pred_batch,
+            title="Batch regressor - Diabetes", xlabel="", ylabel="",
+            text=stringify_dict(batch_metrics)
+            )
+        regression_graph(
+            ax[1], y_test, y_pred_sgd,
+            title="Stochastic regressor - Diabetes", xlabel="", ylabel="",
+            text=stringify_dict(sgd_metrics)
+            )
+
         plt.show()

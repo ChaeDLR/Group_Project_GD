@@ -4,8 +4,10 @@ https://matplotlib.org/stable/gallery/lines_bars_and_markers/hat_graph.html
 import matplotlib.pyplot as plt
 import numpy as np
 
+from matplotlib.offsetbox import AnchoredText
 
-def regression_graph(ax, y_actuals, y_predictions):
+
+def regression_graph(ax, y_actuals, y_predictions, title=None, xlabel=None, ylabel=None, text=None):
     """plot actualy y data points and
         the model linear regression prediction points 
     """
@@ -15,8 +17,20 @@ def regression_graph(ax, y_actuals, y_predictions):
 
     for xi, ya, yp in zip(x, y_actuals, y_predictions):
         ax.vlines(xi, min(ya, yp), max(ya, yp), color='green', alpha=0.6)
-
-    ax.set_title("Regressor")
+    
+    if title:
+        ax.set_title(title)
+    if xlabel:
+        ax.xlabel=xlabel
+    if ylabel:
+        ax.ylabel=ylabel
+    if text:
+        anch_text = AnchoredText(
+            text, prop={"size": 15}, frameon=True, loc='upper left'
+        )
+        anch_text.patch.set_boxstyle("round,pad=0.,rounding_size=0.2")
+        ax.add_artist(anch_text)
+    
     ax.grid()
     ax.legend()
 
