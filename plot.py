@@ -5,6 +5,21 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 
+def regression_graph(ax, y_actuals, y_predictions):
+    """plot actualy y data points and
+        the model linear regression prediction points 
+    """
+    x = [i for i in range(len(y_actuals))]
+    ax.plot(x, y_actuals, "bo", label="y actual", markevery=1, mec="1.0")
+    ax.plot(x, y_predictions, "co", label="y predictions", markevery=1, mec="1.0")
+
+    for xi, ya, yp in zip(x, y_actuals, y_predictions):
+        ax.vlines(xi, min(ya, yp), max(ya, yp), color='green', alpha=0.6)
+
+    ax.set_title("Regressor")
+    ax.grid()
+    ax.legend()
+
 def hat_graph(ax, x_labels, values, group_labels):
     """
     Parameters

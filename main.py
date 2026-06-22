@@ -15,7 +15,7 @@ from sgd.classifier import train_sgd_classifier
 from sgd.regressor import train_sgd_regressor
 from batch_gd.train import train_batch_gd_regressor, train_batch_gd_classifier
 
-from plot import hat_graph
+from plot import hat_graph, regression_graph
 
 def display_confusion_matrix(cm, class_names):
     fig, ax = plot_confusion_matrix(
@@ -150,10 +150,10 @@ if __name__ == "__main__":
     datasets_dict = {
         #"Wine": datasets.load_wine,    # classification dataset
         #"Iris": datasets.load_iris,    # classification dataset
-        #"Linnerud": datasets.load_linnerud, # regression dataset
-        "Diabetes": datasets.load_diabetes, # regression dataset
+        #"Linnerud": datasets.load_linnerud, # regression dataset x_train_shape=(16,3), y_train_shape=(16,3)
+        "Diabetes": datasets.load_diabetes, # regression dataset  x_train_shape=(353,10), y_train_shape=(353,)
         }
-    
+
     for name, loader in datasets_dict.items():
 
         dataset = loader()
@@ -162,6 +162,7 @@ if __name__ == "__main__":
         # each row is a sample, each column is a feature
         x = dataset.data
 
+        # for classification
         # labels, 1d array of ints
         # each element is the class label for the corresponding row in x
         y = dataset.target
@@ -184,4 +185,9 @@ if __name__ == "__main__":
         print_metrics("SGD Regressor", sgd_time, *sgd_metrics)
 
         # plot metrics
-        plot_metrics(f"{name}_dataset", batch_metrics, sgd_metrics, save=True)
+        #plot_metrics(f"{name}_dataset", batch_metrics, sgd_metrics, save=True)
+        print(f"y_test={y_test.shape}")
+        print(f"y_pred_batch={y_pred_batch.shape}")
+        fig, ax = plt.subplots(layout="constrained")
+        regression_graph(ax, y_test, y_pred_batch)
+        plt.show()
